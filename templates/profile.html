@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}My Dashboard - Adarsh Cinemas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row g-4">
+        <!-- Left: Account Details Card -->
+        <div class="col-lg-4">
+            <div class="glass-panel p-4 text-center">
+                <div class="mb-3 d-inline-block p-3 rounded-circle bg-danger bg-opacity-15 text-danger">
+                    <i class="fa-solid fa-circle-user fs-1 animate-pulse" style="font-size:3.5rem !important;"></i>
+                </div>
+                <h4 class="fw-bold mb-1">{{ current_user.name }}</h4>
+                <p class="text-muted small mb-4">{{ current_user.email }}</p>
+
+                <div class="text-start border-top border-secondary pt-3 mt-3 small">
+                    <div class="mb-2 d-flex justify-content-between">
+                        <span class="text-muted">Phone Number:</span>
+                        <span class="text-white fw-bold">{{ current_user.phone or 'Not Provided' }}</span>
+                    </div>
+                    <div class="mb-2 d-flex justify-content-between">
+                        <span class="text-muted">Member Since:</span>
+                        <span class="text-white fw-bold">{{ current_user.created_at.strftime('%B %d, %Y') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Account Status:</span>
+                        <span class="badge bg-success">Active Customer</span>
+                    </div>
+                </div>
+
+                {% if current_user.is_admin %}
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-danger btn-sm w-100 mt-4 py-2">
+                    <i class="fa-solid fa-chart-line me-2"></i>GO TO ADMIN DASHBOARD
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right: Bookings Explorer -->
+        <div class="col-lg-8">
+            <div class="glass-panel p-4">
+                <h3 class="fw-bold mb-4 border-start border-danger border-4 ps-3">My Booking History</h3>
+
+                <ul class="nav nav-tabs nav-tabs-admin mb-4" id="bookingTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="upcoming-tab" data-bs-toggle="tab"
+                            data-bs-target="#upcoming" type="button" role="tab" aria-controls="upcoming"
+                            aria-selected="true">
+                            <i class="fa-solid fa-ticket-simple me-2"></i>Upcoming Shows ({{ upcoming_bookings|length
+                            }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="past-tab" data-bs-toggle="tab" data-bs-target="#past" type="button"
+                            role="tab" aria-controls="past" aria-selected="false">
+                            <i class="fa-solid fa-clock-rotate-left me-2"></i>Past & Cancelled ({{ past_bookings|length
+                            }})
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="bookingTabContent">
+                    <!-- Upcoming Bookings Tab panel -->
+                    <div class="tab-pane fade show active" id="upcoming" role="tabpanel" aria-labelledby="upcoming-tab">
+                        {% if upcoming_bookings %}
+                        <div class="d-flex flex-column gap-3">
+                            {% for booking in upcoming_bookings %}
+                            <div class="booking-item-card glass-panel p-3 bg-dark bg-opacity-25 rounded-3">
+                                <div class="row align-items-center g-3">
+                                    <!-- Poster -->
+                                    <div class="col-auto">
+                                        <img src="{{ booking.show.movie.poster_url }}"
+                                            alt="{{ booking.show.movie.title }}" class="rounded shadow-sm"
+                                            style="width: 55px; height: 80px; object-fit: cover;">
+                                    </div>
+                                    <!-- Details -->
+                                    <div class="col">
+                                        <h5 class="fw-bold mb-1 text-white">{{ booking.show.movie.title }}</h5>
+                                        <div class="small text-muted mb-2">
+                                            {{ booking.show.theatre.name }}, {{ booking.show.theatre.city }}
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-2 text-white small">
+                                            <span class="badge bg-secondary">Seats: {% for s in booking.seats %}{{
+                                                s.seat_number }}{% if not loop.last %}, {% endif %}{% endfor %}</span>
+                                            <span class="badge bg-dark border border-secondary">Screen {{
+                                                booking.show.screen_number }}</span>
+                                            <span class="badge bg-dark border border-secondary">{{
+                                                booking.show.show_date.strftime('%B %d, %Y') }} at {{
+                                                booking.show.show_time.strftime('%I:%M %p') }}</span>
+                                        </div>
+                                    </div>
+                                    <!-- Actions -->
+                                    <div class="col-md-3 text-md-end d-flex flex-column gap-2">
+                                        <a href="{{ url_for('booking.download_ticket', booking_id=booking.id) }}"
+                                            class="btn btn-primary btn-sm rounded-3">
+                                            <i class="fa-solid fa-file-pdf me-1"></i> Download PDF
+                                        </a>
+                                        <!-- Button trigger cancellation modal -->
+                                        <button class="btn btn-outline-danger btn-sm rounded-3" data-bs-toggle="modal"
+                                            data-bs-target="#cancelModal-{{ booking.id }}">
+                                            Cancel Booking
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Cancellation Confirmation Modal -->
+                            <div class="modal fade" id="cancelModal-{{ booking.id }}" tabindex="-1"
+                                aria-labelledby="cancelModalLabel-{{ booking.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content bg-dark text-white border-secondary">
+                                        <div class="modal-header border-secondary">
+                                            <h5 class="modal-title fw-bold" id="cancelModalLabel-{{ booking.id }}">
+                                                Confirm Cancellation</h5>
+                                            <button type="button" class="btn-close btn-close-white"
+                                                data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body text-start">
+                                            <p>Are you sure you want to cancel your tickets for <strong>{{
+                                                    booking.show.movie.title }}</strong> at {{ booking.show.theatre.name
+                                                }}?</p>
+                                            <p class="text-danger small"><i
+                                                    class="fa-solid fa-triangle-exclamation me-1"></i> Warning: This
+                                                action cannot be undone. Refund will be credited to your account.</p>
+                                        </div>
+                                        <div class="modal-footer border-secondary">
+                                            <button type="button" class="btn btn-dark btn-sm"
+                                                data-bs-dismiss="modal">Close</button>
+                                            <form method="POST"
+                                                action="{{ url_for('booking.cancel_booking', booking_id=booking.id) }}">
+                                                <button type="submit" class="btn btn-danger btn-sm">Confirm Cancel
+                                                    Booking</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-ticket-simple fs-1 mb-3"></i>
+                            <h5>No active upcoming tickets.</h5>
+                            <p class="small text-muted mb-0">Browse movies to start booking now!</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Past/Cancelled Bookings Tab panel -->
+                    <div class="tab-pane fade" id="past" role="tabpanel" aria-labelledby="past-tab">
+                        {% if past_bookings %}
+                        <div class="d-flex flex-column gap-3">
+                            {% for booking in past_bookings %}
+                            <div class="booking-item-card past glass-panel p-3 bg-dark bg-opacity-25 rounded-3"
+                                style="opacity: 0.65;">
+                                <div class="row align-items-center g-3">
+                                    <!-- Poster -->
+                                    <div class="col-auto">
+                                        <img src="{{ booking.show.movie.poster_url }}"
+                                            alt="{{ booking.show.movie.title }}" class="rounded"
+                                            style="width: 45px; height: 65px; object-fit: cover;">
+                                    </div>
+                                    <!-- Details -->
+                                    <div class="col">
+                                        <h6 class="fw-bold mb-1 text-white">{{ booking.show.movie.title }}</h6>
+                                        <div class="small text-muted mb-1">{{ booking.show.theatre.name }}</div>
+                                        <div class="small">
+                                            <span class="text-muted">{{ booking.show.show_date.strftime('%b %d, %Y')
+                                                }}</span>
+                                            <span class="mx-1">•</span>
+                                            <span
+                                                class="badge {% if booking.payment_status == 'Confirmed' %}bg-secondary{% else %}bg-danger{% endif %} text-white">{{
+                                                booking.payment_status }}</span>
+                                        </div>
+                                    </div>
+                                    <!-- Actions -->
+                                    <div class="col-md-3 text-md-end">
+                                        {% if booking.payment_status == 'Confirmed' %}
+                                        <a href="{{ url_for('booking.download_ticket', booking_id=booking.id) }}"
+                                            class="btn btn-dark btn-sm rounded-3">
+                                            <i class="fa-solid fa-file-pdf me-1"></i> Invoice PDF
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <p class="small text-muted">No historical purchases found.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

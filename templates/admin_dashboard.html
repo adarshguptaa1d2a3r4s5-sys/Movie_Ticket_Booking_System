@@ -1,0 +1,549 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Control Panel - Adarsh Cinemas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-secondary">
+        <div>
+            <h1 class="fw-extrabold text-white mb-0" style="font-weight: 800;"><i
+                    class="fa-solid fa-gears text-danger me-2"></i>Admin Dashboard</h1>
+            <span class="small text-muted">Manage cinemas, shows, and review interactive real-time sales
+                analytics</span>
+        </div>
+        <span class="badge bg-danger p-2 fs-6">ADMIN SECTOR</span>
+    </div>
+
+    <!-- Analytics KPI Cards -->
+    <div class="row g-3 mb-5">
+        <div class="col-md-3">
+            <div class="admin-card-metric text-start">
+                <span class="small text-muted font-weight-bold uppercase">TOTAL REVENUE</span>
+                <div class="metric-value text-success">₹{{ "{:,.2f}".format(total_revenue) }}</div>
+                <div class="small text-muted mt-2"><i class="fa-solid fa-arrow-trend-up text-success me-1"></i>
+                    confirmed sales</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card-metric text-start">
+                <span class="small text-muted font-weight-bold uppercase">TICKETS SOLD</span>
+                <div class="metric-value text-primary">{{ tickets_sold }}</div>
+                <div class="small text-muted mt-2"><i class="fa-solid fa-ticket-simple text-primary me-1"></i> bookings
+                    closed</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card-metric text-start">
+                <span class="small text-muted font-weight-bold uppercase">OCCUPANCY RATE</span>
+                <div class="metric-value text-warning">{{ occupancy_rate }}%</div>
+                <div class="small text-muted mt-2"><i class="fa-solid fa-percentage text-warning me-1"></i> total
+                    theatre fill rate</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card-metric text-start">
+                <span class="small text-muted font-weight-bold uppercase">ACTIVE SHOWS</span>
+                <div class="metric-value text-white">{{ shows|length }}</div>
+                <div class="small text-muted mt-2"><i class="fa-solid fa-video text-danger me-1"></i> scheduled timers
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Analytics Charts (Chart.js) -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-8">
+            <div class="glass-panel p-4 h-100">
+                <h5 class="fw-bold mb-4 text-white"><i class="fa-solid fa-chart-line text-danger me-2"></i>Weekly
+                    Revenue Trend & Sales</h5>
+                <div style="position: relative; height: 300px;">
+                    <canvas id="revenueTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="glass-panel p-4 h-100">
+                <h5 class="fw-bold mb-4 text-white"><i class="fa-solid fa-pie-chart text-danger me-2"></i>Popular Movies
+                </h5>
+                <div style="position: relative; height: 300px;">
+                    <canvas id="popularMoviesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="glass-panel p-4">
+                <h5 class="fw-bold mb-4 text-white"><i class="fa-solid fa-chart-bar text-danger me-2"></i>Daily Bookings
+                    Volumes</h5>
+                <div style="position: relative; height: 220px;">
+                    <canvas id="dailyBookingsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Entity Managers tabs -->
+    <div class="row">
+        <div class="col-12">
+            <div class="glass-panel p-4">
+                <ul class="nav nav-tabs nav-tabs-admin mb-4" id="adminTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="movies-tab-btn" data-bs-toggle="tab"
+                            data-bs-target="#movies-tab" type="button" role="tab" aria-controls="movies-tab"
+                            aria-selected="true">
+                            <i class="fa-solid fa-film me-2"></i>Movies Manager
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="theatres-tab-btn" data-bs-toggle="tab"
+                            data-bs-target="#theatres-tab" type="button" role="tab" aria-controls="theatres-tab"
+                            aria-selected="false">
+                            <i class="fa-solid fa-hotel me-2"></i>Theatres Manager
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="shows-tab-btn" data-bs-toggle="tab" data-bs-target="#shows-tab"
+                            type="button" role="tab" aria-controls="shows-tab" aria-selected="false">
+                            <i class="fa-solid fa-calendar-days me-2"></i>Shows Scheduler
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="users-tab-btn" data-bs-toggle="tab" data-bs-target="#users-tab"
+                            type="button" role="tab" aria-controls="users-tab" aria-selected="false">
+                            <i class="fa-solid fa-users me-2"></i>Users
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="bookings-tab-btn" data-bs-toggle="tab" data-bs-target="#bookings-tab"
+                            type="button" role="tab" aria-controls="bookings-tab" aria-selected="false">
+                            <i class="fa-solid fa-ticket-simple me-2"></i>Bookings
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="adminTabContent">
+                    <!-- 1. Movies Tab panel -->
+                    <div class="tab-pane fade show active" id="movies-tab" role="tabpanel"
+                        aria-labelledby="movies-tab-btn">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">Registered Movies</h5>
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#addMovieModal">
+                                <i class="fa-solid fa-plus me-1"></i> Add Movie
+                            </button>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover align-middle small">
+                                <thead>
+                                    <tr>
+                                        <th>Poster</th>
+                                        <th>Title</th>
+                                        <th>Genre</th>
+                                        <th>Language</th>
+                                        <th>Duration</th>
+                                        <th>Release Date</th>
+                                        <th>Rating</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for m in movies %}
+                                    <tr>
+                                        <td>
+                                            <img src="{{ m.poster_url }}" alt="{{ m.title }}" class="rounded"
+                                                style="width: 32px; height: 46px; object-fit: cover;">
+                                        </td>
+                                        <td class="fw-bold text-white">{{ m.title }}</td>
+                                        <td>{{ m.genre }}</td>
+                                        <td>{{ m.language }}</td>
+                                        <td>{{ m.duration }} mins</td>
+                                        <td>{{ m.release_date.strftime('%Y-%m-%d') }}</td>
+                                        <td><i class="fa-solid fa-star text-warning me-1"></i>{{ m.rating }}</td>
+                                        <td>
+                                            {% if m.is_upcoming %}
+                                            <span class="badge bg-secondary">Upcoming</span>
+                                            {% else %}
+                                            <span class="badge bg-success">Running</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="d-flex gap-2">
+                                                <a href="{{ url_for('admin.edit_movie', movie_id=m.id) }}"
+                                                    class="btn btn-dark btn-sm py-1 px-2 rounded"><i
+                                                        class="fa-solid fa-pen-to-square"></i></a>
+                                                <form method="POST"
+                                                    action="{{ url_for('admin.delete_movie', movie_id=m.id) }}"
+                                                    onsubmit="return confirm('Delete this movie? All scheduled shows will also be deleted!');">
+                                                    <button type="submit"
+                                                        class="btn btn-danger btn-sm py-1 px-2 rounded"><i
+                                                            class="fa-solid fa-trash"></i></button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 2. Theatres Tab panel -->
+                    <div class="tab-pane fade" id="theatres-tab" role="tabpanel" aria-labelledby="theatres-tab-btn">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">Cinema Multiplexes</h5>
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#addTheatreModal">
+                                <i class="fa-solid fa-plus me-1"></i> Add Theatre
+                            </button>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover align-middle small">
+                                <thead>
+                                    <tr>
+                                        <th>Theatre Name</th>
+                                        <th>City</th>
+                                        <th>Address</th>
+                                        <th>Screens</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for t in theatres %}
+                                    <tr>
+                                        <td class="fw-bold text-white">{{ t.name }}</td>
+                                        <td class="text-danger fw-bold">{{ t.city }}</td>
+                                        <td>{{ t.address }}</td>
+                                        <td>{{ t.screens }} Screens</td>
+                                        <td>
+                                            <div class="d-flex gap-2">
+                                                <a href="{{ url_for('admin.edit_theatre', theatre_id=t.id) }}"
+                                                    class="btn btn-dark btn-sm py-1 px-2 rounded"><i
+                                                        class="fa-solid fa-pen-to-square"></i></a>
+                                                <form method="POST"
+                                                    action="{{ url_for('admin.delete_theatre', theatre_id=t.id) }}"
+                                                    onsubmit="return confirm('Delete this theatre and all its associated shows?');">
+                                                    <button type="submit"
+                                                        class="btn btn-danger btn-sm py-1 px-2 rounded"><i
+                                                            class="fa-solid fa-trash"></i></button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 3. Shows Tab panel -->
+                    <div class="tab-pane fade" id="shows-tab" role="tabpanel" aria-labelledby="shows-tab-btn">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">Scheduled Shows</h5>
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#addShowModal">
+                                <i class="fa-solid fa-plus me-1"></i> Create Show
+                            </button>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover align-middle small">
+                                <thead>
+                                    <tr>
+                                        <th>Movie</th>
+                                        <th>Theatre</th>
+                                        <th>Screen</th>
+                                        <th>Show Date</th>
+                                        <th>Show Time</th>
+                                        <th>Base Price</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for s in shows %}
+                                    <tr>
+                                        <td class="fw-bold text-white">{{ s.movie.title }}</td>
+                                        <td>{{ s.theatre.name }} ({{ s.theatre.city }})</td>
+                                        <td>Screen {{ s.screen_number }}</td>
+                                        <td>{{ s.show_date.strftime('%Y-%m-%d') }}</td>
+                                        <td class="text-danger fw-bold">{{ s.show_time.strftime('%I:%M %p') }}</td>
+                                        <td>₹{{ s.base_price }}</td>
+                                        <td>
+                                            <form method="POST"
+                                                action="{{ url_for('admin.delete_show', show_id=s.id) }}"
+                                                onsubmit="return confirm('Delete this show and unlock all its bookings?');">
+                                                <button type="submit" class="btn btn-danger btn-sm py-1 px-2 rounded"><i
+                                                        class="fa-solid fa-trash"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 4. Users Tab panel -->
+                    <div class="tab-pane fade" id="users-tab" role="tabpanel" aria-labelledby="users-tab-btn">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">Registered Users Space</h5>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover align-middle small">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Joined Date</th>
+                                        <th>Role</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for u in users %}
+                                    <tr>
+                                        <td class="fw-bold text-white">{{ u.name }}</td>
+                                        <td>{{ u.email }}</td>
+                                        <td>{{ u.phone if u.phone else 'N/A' }}</td>
+                                        <td>{{ u.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        <td>
+                                            {% if u.is_admin %}
+                                            <span class="badge bg-danger">Admin</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">User</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- 5. Bookings Tab panel -->
+                    <div class="tab-pane fade" id="bookings-tab" role="tabpanel" aria-labelledby="bookings-tab-btn">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">All Bookings</h5>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover align-middle small">
+                                <thead>
+                                    <tr>
+                                        <th>Ref ID</th>
+                                        <th>User</th>
+                                        <th>Movie</th>
+                                        <th>Theatre & Time</th>
+                                        <th>Seats</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for b in bookings %}
+                                    <tr>
+                                        <td class="fw-bold text-white">{{ b.booking_reference }}</td>
+                                        <td>{{ b.user.name }}<br><small class="text-muted">{{ b.user.email }}</small></td>
+                                        <td class="fw-bold text-white">{{ b.show.movie.title }}</td>
+                                        <td>{{ b.show.theatre.name }}<br><small class="text-muted">{{ b.show.show_date.strftime('%Y-%m-%d') }} {{ b.show.show_time.strftime('%I:%M %p') }}</small></td>
+                                        <td>
+                                            {% for seat in b.seats %}
+                                                {{ seat.seat_number }}{% if not loop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </td>
+                                        <td>₹{{ b.total_price }}</td>
+                                        <td>
+                                            {% if b.payment_status == 'Confirmed' %}
+                                            <span class="badge bg-success">Confirmed</span>
+                                            {% elif b.payment_status == 'Cancelled' %}
+                                            <span class="badge bg-danger">Cancelled</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">{{ b.payment_status }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- --- Entity creation MODAL Forms --- -->
+
+<!-- Add Movie Modal -->
+<div class="modal fade" id="addMovieModal" tabindex="-1" aria-labelledby="addMovieLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold" id="addMovieLabel"><i
+                        class="fa-solid fa-film text-danger me-2"></i>Register New Movie</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.add_movie') }}">
+                <div class="modal-body text-start">
+                    {{ movie_form.csrf_token }}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {{ movie_form.title.label(class="form-label small text-muted") }}
+                            {{ movie_form.title(class="form-control") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ movie_form.genre.label(class="form-label small text-muted") }}
+                            {{ movie_form.genre(class="form-control", placeholder="Action, Sci-Fi") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ movie_form.language.label(class="form-label small text-muted") }}
+                            {{ movie_form.language(class="form-control", placeholder="English") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ movie_form.duration.label(class="form-label small text-muted") }}
+                            {{ movie_form.duration(class="form-control", type="number") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ movie_form.release_date.label(class="form-label small text-muted") }}
+                            {{ movie_form.release_date(class="form-control", type="date") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ movie_form.rating.label(class="form-label small text-muted") }}
+                            {{ movie_form.rating(class="form-control", type="number", step="0.1") }}
+                        </div>
+                        <div class="col-12">
+                            {{ movie_form.poster_url.label(class="form-label small text-muted") }}
+                            {{ movie_form.poster_url(class="form-control", placeholder="https://...") }}
+                        </div>
+                        <div class="col-12">
+                            {{ movie_form.trailer_url.label(class="form-label small text-muted") }}
+                            {{ movie_form.trailer_url(class="form-control",
+                            placeholder="https://www.youtube.com/embed/...") }}
+                        </div>
+                        <div class="col-12">
+                            {{ movie_form.description.label(class="form-label small text-muted") }}
+                            {{ movie_form.description(class="form-control", rows="3") }}
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch mt-2">
+                                {{ movie_form.is_upcoming(class="form-check-input", role="switch") }}
+                                {{ movie_form.is_upcoming.label(class="form-check-label small") }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-dark btn-sm" data-bs-dismiss="modal">Close</button>
+                    {{ movie_form.submit(class="btn btn-primary btn-sm") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Theatre Modal -->
+<div class="modal fade" id="addTheatreModal" tabindex="-1" aria-labelledby="addTheatreLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold" id="addTheatreLabel"><i
+                        class="fa-solid fa-hotel text-danger me-2"></i>Register New Theatre</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.add_theatre') }}">
+                <div class="modal-body text-start">
+                    {{ theatre_form.csrf_token }}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            {{ theatre_form.name.label(class="form-label small text-muted") }}
+                            {{ theatre_form.name(class="form-control") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ theatre_form.city.label(class="form-label small text-muted") }}
+                            {{ theatre_form.city(class="form-control", placeholder="Mumbai") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ theatre_form.screens.label(class="form-label small text-muted") }}
+                            {{ theatre_form.screens(class="form-control", type="number") }}
+                        </div>
+                        <div class="col-12">
+                            {{ theatre_form.address.label(class="form-label small text-muted") }}
+                            {{ theatre_form.address(class="form-control") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-dark btn-sm" data-bs-dismiss="modal">Close</button>
+                    {{ theatre_form.submit(class="btn btn-primary btn-sm") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Show Modal -->
+<div class="modal fade" id="addShowModal" tabindex="-1" aria-labelledby="addShowLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold" id="addShowLabel"><i
+                        class="fa-solid fa-calendar-plus text-danger me-2"></i>Schedule Showtime</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.add_show') }}">
+                <div class="modal-body text-start">
+                    {{ show_form.csrf_token }}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            {{ show_form.movie_id.label(class="form-label small text-muted") }}
+                            {{ show_form.movie_id(class="form-select bg-dark text-white border-secondary") }}
+                        </div>
+                        <div class="col-12">
+                            {{ show_form.theatre_id.label(class="form-label small text-muted") }}
+                            {{ show_form.theatre_id(class="form-select bg-dark text-white border-secondary") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ show_form.screen_number.label(class="form-label small text-muted") }}
+                            {{ show_form.screen_number(class="form-control", type="number") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ show_form.base_price.label(class="form-label small text-muted") }}
+                            {{ show_form.base_price(class="form-control", type="number") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ show_form.show_date.label(class="form-label small text-muted") }}
+                            {{ show_form.show_date(class="form-control", type="date") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ show_form.show_time.label(class="form-label small text-muted") }}
+                            {{ show_form.show_time(class="form-control", type="time") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-dark btn-sm" data-bs-dismiss="modal">Close</button>
+                    {{ show_form.submit(class="btn btn-primary btn-sm") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Add Chart.js lib -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Render charts once DOM is loaded
+        renderAdminCharts();
+    });
+</script>
+{% endblock %}

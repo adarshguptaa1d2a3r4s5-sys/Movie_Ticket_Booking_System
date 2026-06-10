@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Adarsh Cinemas{% endblock %}
+
+{% block content %}
+<!-- Spotlight Hero Carousel -->
+<div class="container mb-5">
+    <div id="spotlightCarousel" class="carousel slide hero-carousel rounded-4 overflow-hidden shadow-lg"
+        data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active"
+                style="background-image: url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1200&q=80');">
+                <div class="carousel-overlay"></div>
+                <div class="carousel-caption text-start pb-5 px-4 col-md-8">
+                    <span class="badge bg-danger mb-2 px-2 py-1 uppercase fw-bold tracking-wider">SPOTLIGHT</span>
+                    <h1 class="display-4 fw-extrabold text-white mb-2" style="font-weight: 800;">INCEPTION</h1>
+                    <p class="lead text-light mb-4">A thief who steals corporate secrets through dream-sharing
+                        technology is given the inverse task of planting an idea. Experience Christopher Nolan's
+                        mind-bending masterpiece.</p>
+                    <a href="{{ url_for('movies.movie_details', movie_id=2) }}" class="btn btn-primary btn-lg"><i
+                            class="fa-solid fa-ticket me-2"></i>Book Tickets</a>
+                </div>$
+            </div>
+            <div class="carousel-item"
+                style="background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80');">
+                <div class="carousel-overlay"></div>
+                <div class="carousel-caption text-start pb-5 px-4 col-md-8">
+                    <span class="badge bg-danger mb-2 px-2 py-1 uppercase fw-bold tracking-wider">SPOTLIGHT</span>
+                    <h1 class="display-4 fw-extrabold text-white mb-2" style="font-weight: 800;">INTERSTELLAR</h1>
+                    <p class="lead text-light mb-4">Mankind was born on Earth. It was never meant to die here. Journey
+                        through the cosmos and into a wormhole in Christopher Nolan's legendary sci-fi saga.</p>
+                    <a href="{{ url_for('movies.movie_details', movie_id=4) }}" class="btn btn-primary btn-lg"><i
+                            class="fa-solid fa-ticket me-2"></i>Book Tickets</a>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#spotlightCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#spotlightCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</div>
+
+<!-- Main Discovery Hub -->
+<div class="container">
+    <div class="row">
+        <!-- Filter Header Ribbon -->
+        <div class="col-12 mb-4">
+            <div class="glass-panel p-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <h4 class="mb-0 fw-bold"><i class="fa-solid fa-sliders text-danger me-2"></i>Filter Explorer</h4>
+                    {% if selected_city != 'All' or selected_genre != 'All' or selected_lang != 'All' or search_query %}
+                    <a href="{{ url_for('movies.home', city='All', genre='All', language='All') }}"
+                        class="btn btn-outline-danger btn-sm rounded-pill py-0 px-3">Clear Filters</a>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <!-- City Dropdown -->
+                    <div class="dropdown">
+                        <button class="btn btn-dark btn-sm dropdown-toggle" type="button" id="cityMenu"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            City: {{ selected_city }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="cityMenu">
+                            <li><a class="dropdown-item {% if selected_city == 'All' %}active{% endif %}"
+                                    href="{{ url_for('movies.home', city='All', genre=selected_genre, language=selected_lang, search=search_query) }}">All
+                                    Cities</a></li>
+                            {% for city in cities %}
+                            <li><a class="dropdown-item {% if selected_city == city %}active{% endif %}"
+                                    href="{{ url_for('movies.home', city=city, genre=selected_genre, language=selected_lang, search=search_query) }}">{{
+                                    city }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <!-- Genre Dropdown -->
+                    <div class="dropdown">
+                        <button class="btn btn-dark btn-sm dropdown-toggle" type="button" id="genreMenu"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Genre: {{ selected_genre }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="genreMenu"
+                            style="max-height: 250px; overflow-y: auto;">
+                            <li><a class="dropdown-item {% if selected_genre == 'All' %}active{% endif %}"
+                                    href="{{ url_for('movies.home', city=selected_city, genre='All', language=selected_lang, search=search_query) }}">All
+                                    Genres</a></li>
+                            {% for genre in genres %}
+                            <li><a class="dropdown-item {% if selected_genre == genre %}active{% endif %}"
+                                    href="{{ url_for('movies.home', city=selected_city, genre=genre, language=selected_lang, search=search_query) }}">{{
+                                    genre }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <!-- Language Dropdown -->
+                    <div class="dropdown">
+                        <button class="btn btn-dark btn-sm dropdown-toggle" type="button" id="languageMenu"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Language: {{ selected_lang }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="languageMenu">
+                            <li><a class="dropdown-item {% if selected_lang == 'All' %}active{% endif %}"
+                                    href="{{ url_for('movies.home', city=selected_city, genre=selected_genre, language='All', search=search_query) }}">All
+                                    Languages</a></li>
+                            {% for lang in languages %}
+                            <li><a class="dropdown-item {% if selected_lang == lang %}active{% endif %}"
+                                    href="{{ url_for('movies.home', city=selected_city, genre=selected_genre, language=lang, search=search_query) }}">{{
+                                    lang }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Currently Running Movies (Now Showing) -->
+        <div class="col-12 mb-5">
+            <h2 class="fw-bold mb-4 d-flex align-items-center">
+                <span class="border-start border-danger border-4 ps-3">NOW SHOWING</span>
+                {% if selected_city != 'All' %}
+                <span class="text-muted fs-5 ms-3">in {{ selected_city }}</span>
+                {% endif %}
+            </h2>
+
+            {% if running_movies %}
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+                {% for movie in running_movies %}
+                <div class="col">
+                    <div class="movie-card h-100">
+                        <a href="{{ url_for('movies.movie_details', movie_id=movie.id) }}"
+                            class="text-decoration-none text-white">
+                            <div class="movie-poster-wrapper">
+                                <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="movie-poster-img">
+                                {% if movie.rating > 0 %}
+                                <div class="movie-rating-badge"><i class="fa-solid fa-star me-1 text-warning"></i>{{
+                                    movie.rating }}</div>
+                                {% endif %}
+                                <div class="movie-lang-badge">{{ movie.language }}</div>
+                            </div>
+                            <div class="p-3">
+                                <h5 class="fw-bold text-truncate mb-1">{{ movie.title }}</h5>
+                                <div class="small text-muted mb-2">{{ movie.genre }}</div>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <span class="small text-muted"><i class="fa-regular fa-clock me-1"></i>{{
+                                        movie.duration }} mins</span>
+                                    <span class="btn btn-primary btn-sm px-3 rounded-3">Book Now</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="glass-panel text-center py-5">
+                <i class="fa-regular fa-face-frown fs-1 text-muted mb-3"></i>
+                <h4 class="fw-bold">No movies matching your criteria.</h4>
+                <p class="text-muted">Try adjusting filters or searching for something else.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Upcoming Movies (Coming Soon) -->
+        <div class="col-12 mb-5">
+            <h2 class="fw-bold mb-4">
+                <span class="border-start border-danger border-4 ps-3">COMING SOON</span>
+            </h2>
+
+            {% if upcoming_movies %}
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+                {% for movie in upcoming_movies %}
+                <div class="col">
+                    <div class="movie-card h-100 opacity-85">
+                        <a href="{{ url_for('movies.movie_details', movie_id=movie.id) }}" class="text-decoration-none text-white">
+                            <div class="movie-poster-wrapper">
+                                <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="movie-poster-img">
+                                <div class="movie-lang-badge">{{ movie.language }}</div>
+                            </div>
+                            <div class="p-3">
+                                <h5 class="fw-bold text-truncate mb-1">{{ movie.title }}</h5>
+                                <div class="small text-muted mb-2">{{ movie.genre }}</div>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <span class="small text-muted"><i class="fa-regular fa-clock me-1"></i>{{ movie.duration }} mins</span>
+                                    <span class="btn btn-primary btn-sm px-3 rounded-3">Book Now</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <p class="text-muted">No upcoming releases scheduled.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Personal Recommendation Engine Section -->
+        {% if recommendations %}
+        <div class="col-12 mb-5 py-4 border-top border-secondary">
+            <h3 class="fw-bold mb-4 text-center">
+                <i class="fa-solid fa-wand-magic-sparkles text-danger me-2"></i>RECOMMENDED FOR YOU
+            </h3>
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4 justify-content-center">
+                {% for movie in recommendations %}
+                <div class="col">
+                    <div class="movie-card h-100 border-danger border-opacity-25" style="transform: scale(0.95);">
+                        <a href="{{ url_for('movies.movie_details', movie_id=movie.id) }}"
+                            class="text-decoration-none text-white">
+                            <div class="movie-poster-wrapper">
+                                <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="movie-poster-img">
+                                {% if movie.rating > 0 %}
+                                <div class="movie-rating-badge"><i class="fa-solid fa-star me-1 text-warning"></i>{{
+                                    movie.rating }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="p-3">
+                                <h6 class="fw-bold text-truncate mb-0">{{ movie.title }}</h6>
+                                <div class="small text-muted text-truncate" style="font-size:0.75rem;">{{ movie.genre }}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

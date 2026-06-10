@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Confirmed - {{ booking.booking_reference }} - Adarsh Cinemas{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 750px;">
+    <!-- Confirmation Announcement header -->
+    <div class="text-center mb-5 animate-fade-in">
+        <i class="fa-solid fa-circle-check text-success fs-1 mb-3 animate-pulse"
+            style="filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.6)); font-size:4.5rem !important;"></i>
+        <h1 class="fw-extrabold text-white" style="font-weight:800;">BOOKING CONFIRMED!</h1>
+        <p class="text-muted lead">Your transaction was successful. Get ready to experience cinematic magic!</p>
+    </div>
+
+    <!-- Ticket Summary Card Box -->
+    <div class="ticket-confirmed-box p-4 mb-4 shadow-lg">
+        <div class="row align-items-center g-4">
+            <!-- Left: Poster & Text details -->
+            <div class="col-md-8 border-end border-secondary border-opacity-50 pe-md-4">
+                <div class="d-flex align-items-start gap-3 mb-4">
+                    <img src="{{ booking.show.movie.poster_url }}" alt="{{ booking.show.movie.title }}"
+                        class="rounded shadow-md"
+                        style="width: 70px; height: 100px; object-fit: cover; border: 1.5px solid rgba(255,255,255,0.15)">
+                    <div>
+                        <h4 class="fw-bold mb-1 text-white">{{ booking.show.movie.title }}</h4>
+                        <span class="badge bg-danger small">{{ booking.show.movie.language }}</span>
+                        <span class="text-muted small ms-2"><i class="fa-regular fa-clock me-1"></i>{{
+                            booking.show.movie.duration }} mins</span>
+                    </div>
+                </div>
+
+                <div class="row g-3 small">
+                    <div class="col-6">
+                        <span class="text-muted d-block" style="font-size:0.75rem;">BOOKING ID</span>
+                        <span class="fw-bold text-white fs-6">{{ booking.booking_reference }}</span>
+                    </div>
+                    <div class="col-6">
+                        <span class="text-muted d-block" style="font-size:0.75rem;">THEATRE</span>
+                        <span class="fw-bold text-white">{{ booking.show.theatre.name }}</span>
+                    </div>
+                    <div class="col-6">
+                        <span class="text-muted d-block" style="font-size:0.75rem;">SHOW DATE & TIME</span>
+                        <span class="fw-bold text-white">
+                            {{ booking.show.show_date.strftime('%B %d, %Y') }} at {{
+                            booking.show.show_time.strftime('%I:%M %p') }}
+                        </span>
+                    </div>
+                    <div class="col-6">
+                        <span class="text-muted d-block" style="font-size:0.75rem;">SEATS & SCREEN</span>
+                        <span class="fw-bold text-white">
+                            {% for seat in booking.seats %}
+                            {{ seat.seat_number }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                            (Screen {{ booking.show.screen_number }})
+                        </span>
+                    </div>
+                    <div class="col-12 mt-3 pt-3 border-top border-secondary border-opacity-50">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Total Paid Amount:</span>
+                            <span class="fw-extrabold text-danger fs-5" style="font-weight: 800;">₹{{ price.grand_total
+                                }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Inline embedded QR Code -->
+            <div class="col-md-4 text-center">
+                <div class="p-2 bg-white rounded-3 d-inline-block shadow-sm mb-2">
+                    <img src="{{ qr_code }}" class="img-fluid" alt="Ticket QR" style="max-width: 140px; height: 140px;">
+                </div>
+                <div class="small text-muted" style="font-size:0.75rem;">Scan this QR at the Box Office</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="d-flex flex-column flex-sm-row justify-content-center gap-3 mt-4">
+        <a href="{{ url_for('booking.download_ticket', booking_id=booking.id) }}"
+            class="btn btn-primary btn-lg px-4 py-3 rounded-3 fs-6 flex-fill">
+            <i class="fa-solid fa-file-pdf me-2"></i> DOWNLOAD TICKET PDF
+        </a>
+        <a href="{{ url_for('movies.home') }}" class="btn btn-outline-light btn-lg px-4 py-3 rounded-3 fs-6 flex-fill">
+            Back to Home
+        </a>
+    </div>
+</div>
+{% endblock %}

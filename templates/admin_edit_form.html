@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Admin - Adarsh Cinemas{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 650px;">
+    <div class="glass-panel p-4 mt-4">
+        <h3 class="fw-bold mb-4 border-start border-danger border-4 ps-3">{{ title }}</h3>
+
+        <form method="POST" action="{{ action_url }}">
+            {{ form.csrf_token }}
+
+            {% for field in form if field.name not in ['csrf_token', 'submit'] %}
+            <div class="mb-3">
+                {% if field.type == 'BooleanField' %}
+                <div class="form-check form-switch mt-2">
+                    {{ field(class="form-check-input", role="switch") }}
+                    {{ field.label(class="form-check-label small text-muted") }}
+                </div>
+                {% else %}
+                {{ field.label(class="form-check-label small text-muted") }}
+                {% if field.type == 'TextAreaField' %}
+                {{ field(class="form-control", rows="4") }}
+                {% elif field.type == 'SelectField' %}
+                {{ field(class="form-select bg-dark text-white border-secondary") }}
+                {% else %}
+                {{ field(class="form-control") }}
+                {% endif %}
+                {% endif %}
+
+                {% if field.errors %}
+                <div class="text-danger small mt-1">
+                    {% for error in field.errors %}
+                    <i class="fa-solid fa-circle-exclamation me-1"></i>{{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div class="d-flex gap-2 mt-4 pt-3 border-top border-secondary border-opacity-50">
+                <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-light px-4">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

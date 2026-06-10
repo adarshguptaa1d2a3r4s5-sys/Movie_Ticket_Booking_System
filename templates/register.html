@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account - Adarsh Cinemas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-card glass-panel" style="max-width: 500px;">
+        <h2 class="auth-title text-center">Register Account</h2>
+
+        <form method="POST" action="">
+            {{ form.csrf_token }}
+
+            <div class="mb-3">
+                {{ form.name.label(class="form-label small text-muted") }}
+                {% if form.name.errors %}
+                {{ form.name(class="form-control is-invalid", placeholder="Full Name") }}
+                <div class="invalid-feedback">
+                    {% for error in form.name.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.name(class="form-control", placeholder="Full Name") }}
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.email.label(class="form-label small text-muted") }}
+                {% if form.email.errors %}
+                {{ form.email(class="form-control is-invalid", placeholder="Email Address") }}
+                <div class="invalid-feedback">
+                    {% for error in form.email.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.email(class="form-control", placeholder="Email Address") }}
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.phone.label(class="form-label small text-muted") }}
+                {% if form.phone.errors %}
+                {{ form.phone(class="form-control is-invalid", placeholder="Phone Number (e.g. 9876543210)") }}
+                <div class="invalid-feedback">
+                    {% for error in form.phone.errors %}
+                    <span>{{ error }}</span>
+                </div>
+                {% endfor %}
+                {% else %}
+                {{ form.phone(class="form-control", placeholder="Phone Number (e.g. 9876543210)") }}
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.password.label(class="form-label small text-muted") }}
+                {% if form.password.errors %}
+                {{ form.password(class="form-control is-invalid", placeholder="Create Password") }}
+                <div class="invalid-feedback">
+                    {% for error in form.password.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.password(class="form-control", placeholder="Create Password") }}
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                {{ form.confirm_password.label(class="form-label small text-muted") }}
+                {% if form.confirm_password.errors %}
+                {{ form.confirm_password(class="form-control is-invalid", placeholder="Confirm Password") }}
+                <div class="invalid-feedback">
+                    {% for error in form.confirm_password.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.confirm_password(class="form-control", placeholder="Confirm Password") }}
+                {% endif %}
+            </div>
+
+            <div class="d-grid mb-3">
+                {{ form.submit(class="btn btn-primary btn-lg fs-6") }}
+            </div>
+        </form>
+
+        <div class="text-center mt-4 small text-muted">
+            Already have an account? <a href="{{ url_for('auth.login') }}"
+                class="text-danger fw-bold text-decoration-none">Sign In</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}{{ movie.title }} - Movie Details - Adarsh Cinemas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Movie Info Block -->
+    <div class="row g-4 mb-5">
+        <!-- Left: Poster Column -->
+        <div class="col-md-4 col-lg-3">
+            <div class="movie-card shadow-lg border-secondary">
+                <div class="movie-poster-wrapper">
+                    <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="movie-poster-img">
+                    {% if movie.rating > 0 %}
+                    <div class="movie-rating-badge"><i class="fa-solid fa-star me-1 text-warning"></i>{{ movie.rating }}
+                        / 10</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Text & Trailer Column -->
+        <div class="col-md-8 col-lg-9">
+            <div class="glass-panel p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <span class="badge bg-danger mb-2 px-3 py-2 uppercase fw-bold" style="font-size:0.8rem;">{{
+                        movie.language }}</span>
+                    <h1 class="display-5 fw-extrabold text-white mb-2" style="font-weight: 800;">{{ movie.title }}</h1>
+
+                    <div class="d-flex flex-wrap gap-3 align-items-center mb-3 text-muted small">
+                        <span><i class="fa-regular fa-clock me-1 text-danger"></i>{{ movie.duration }} Minutes</span>
+                        <span>|</span>
+                        <span><i class="fa-regular fa-calendar-days me-1 text-danger"></i>Released: {{
+                            movie.release_date.strftime('%B %d, %Y') }}</span>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        {% for g in movie.genre.split(',') %}
+                        <span class="badge bg-dark border border-secondary px-3 py-2 rounded-pill"
+                            style="font-size:0.75rem;">{{ g.strip() }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <h5 class="fw-bold mb-2">Synopsis</h5>
+                    <p class="text-muted leading-relaxed mb-4" style="font-size:0.95rem;">{{ movie.description }}</p>
+                </div>
+
+                <!-- Trailer section -->
+                {% if movie.trailer_url %}
+                <div class="mb-2">
+                    <h5 class="fw-bold mb-2"><i class="fa-brands fa-youtube text-danger me-2"></i>Official Trailer</h5>
+                    <div class="ratio ratio-21x9 rounded-3 overflow-hidden border border-secondary"
+                        style="max-height: 220px;">
+                        <iframe src="{{ movie.trailer_url }}" title="YouTube video player" frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowfullscreen></iframe>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Showtimes Block -->
+    {% if not movie.is_upcoming %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="fw-bold mb-4 border-start border-danger border-4 ps-3">SCHEDULE & SHOWTIMES</h3>
+
+            <div class="glass-panel p-4 mb-4">
+                <div class="row align-items-center g-3 mb-4 border-bottom border-secondary pb-3">
+                    <!-- City Selector Filter -->
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Change City</label>
+                        <select class="form-select bg-dark text-white border-secondary"
+                            onchange="location = this.value;">
+                            {% for city in cities %}
+                            <option value="{{ url_for('movies.movie_details', movie_id=movie.id, city=city) }}" {% if
+                                selected_city==city %}selected{% endif %}>{{ city }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Date Horizontal Scroller selector -->
+                    <div class="col-md-9">
+                        <label class="form-label small text-muted">Select Show Date</label>
+                        <div class="d-flex gap-2 overflow-auto pb-2">
+                            {% for d in show_dates %}
+                            <a href="{{ url_for('movies.movie_details', movie_id=movie.id, city=selected_city, date=d.strftime('%Y-%m-%d')) }}"
+                                class="btn btn-sm {% if selected_date == d %}btn-primary{% else %}btn-dark{% endif %} text-nowrap py-2 px-3 flex-fill rounded-3 text-center">
+                                <div class="fw-bold">{{ d.strftime('%d %b') }}</div>
+                                <div class="small" style="font-size:0.65rem;">{{ d.strftime('%A') }}</div>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Showtime List grouped by Theatre -->
+                {% if theatre_shows %}
+                <div class="d-flex flex-column gap-4">
+                    {% for theatre, shows_list in theatre_shows.items() %}
+                    <div class="p-3 bg-dark bg-opacity-50 rounded-3 border border-secondary border-opacity-50">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                            <div>
+                                <h5 class="fw-bold mb-0 text-white"><i class="fa-solid fa-hotel text-danger me-2"></i>{{
+                                    theatre.name }}</h5>
+                                <span class="small text-muted">{{ theatre.address }}</span>
+                            </div>
+                            <span class="badge bg-secondary">Screens: {{ theatre.screens }}</span>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-3">
+                            {% for show in shows_list %}
+                            <a href="{{ url_for('booking.seat_selection', show_id=show.id) }}"
+                                class="btn btn-outline-light d-flex flex-column align-items-center py-2 px-4 rounded-3 text-decoration-none shadow-sm hover:scale-105 border-secondary"
+                                style="min-width: 110px;">
+                                <span class="fw-bold text-white fs-6 mb-1">{{ show.show_time.strftime('%I:%M %p')
+                                    }}</span>
+                                <span class="small text-muted" style="font-size: 0.7rem;">Screen {{ show.screen_number
+                                    }}</span>
+                                <span class="badge bg-danger mt-2">₹{{ show.base_price }}</span>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fa-solid fa-calendar-xmark fs-1 text-muted mb-3"></i>
+                    <h5 class="fw-bold">No shows scheduled for {{ selected_date.strftime('%B %d, %Y') }}.</h5>
+                    <p class="text-muted">Please select another date or check different cities.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="glass-panel text-center py-5 border-danger border-opacity-25">
+                <i class="fa-solid fa-bell fs-1 text-danger mb-3 animate-bounce"></i>
+                <h4 class="fw-bold text-white">Releasing on {{ movie.release_date.strftime('%B %d, %Y') }}</h4>
+                <p class="text-muted max-w-lg mx-auto">This movie is currently in upcoming status. Advance bookings will
+                    open soon as the release date approaches. Stay tuned!</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Related recommendations -->
+    {% if recommendations %}
+    <div class="row pt-4 border-top border-secondary">
+        <div class="col-12">
+            <h4 class="fw-bold mb-4 text-center text-md-start"><i class="fa-solid fa-gift text-danger me-2"></i>You
+                Might Also Like</h4>
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+                {% for rec in recommendations %}
+                <div class="col">
+                    <div class="movie-card h-100" style="transform: scale(0.95);">
+                        <a href="{{ url_for('movies.movie_details', movie_id=rec.id) }}"
+                            class="text-decoration-none text-white">
+                            <div class="movie-poster-wrapper">
+                                <img src="{{ rec.poster_url }}" alt="{{ rec.title }}" class="movie-poster-img">
+                            </div>
+                            <div class="p-3">
+                                <h6 class="fw-bold text-truncate mb-0">{{ rec.title }}</h6>
+                                <div class="small text-muted text-truncate" style="font-size:0.75rem;">{{ rec.genre }}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

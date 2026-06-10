@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Mock Payment Gateway - Adarsh Cinemas{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px;">
+    <!-- Hold Timer Header -->
+    <div class="glass-panel p-3 mb-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="mb-0 fw-bold"><i class="fa-solid fa-credit-card text-danger me-2"></i>Secure Payment Gateway</h4>
+            <span class="small text-muted">Booking Reference: {{ booking.booking_reference }}</span>
+        </div>
+        <div class="text-end">
+            <span id="countdown-timer" class="timer-pill" data-seconds-left="{{ remaining_seconds }}">
+                <i class="fa-solid fa-hourglass-half"></i> 05:00
+            </span>
+            <div class="small text-muted mt-1" style="font-size:0.75rem;">Complete payment before hold expires</div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left: Payment Simulator Tabs -->
+        <div class="col-md-7">
+            <div class="glass-panel p-4 h-100">
+                <h5 class="fw-bold mb-4">Choose Payment Method</h5>
+
+                <ul class="nav nav-pills nav-fill mb-4 bg-dark p-1 rounded-3" id="paymentTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active small py-2" id="upi-tab" data-bs-toggle="tab"
+                            data-bs-target="#upi" type="button" role="tab" aria-controls="upi" aria-selected="true">
+                            <i class="fa-solid fa-mobile-screen me-1"></i> UPI
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link small py-2" id="card-tab" data-bs-toggle="tab" data-bs-target="#card"
+                            type="button" role="tab" aria-controls="card" aria-selected="false">
+                            <i class="fa-regular fa-credit-card me-1"></i> Card
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link small py-2" id="net-tab" data-bs-toggle="tab" data-bs-target="#net"
+                            type="button" role="tab" aria-controls="net" aria-selected="false">
+                            <i class="fa-solid fa-building-columns me-1"></i> NetBanking
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="paymentTabsContent">
+                    <!-- UPI Tab panel -->
+                    <div class="tab-pane fade show active" id="upi" role="tabpanel" aria-labelledby="upi-tab">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">Virtual Payment Address (VPA)</label>
+                            <input type="text" class="form-control" placeholder="username@upi" value="john.doe@okicici">
+                            <span class="small text-muted" style="font-size:0.75rem;">Enter your UPI ID to trigger a
+                                simulated request.</span>
+                        </div>
+                    </div>
+
+                    <!-- Credit/Debit Card Tab panel -->
+                    <div class="tab-pane fade" id="card" role="tabpanel" aria-labelledby="card-tab">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">Card Number</label>
+                            <input type="text" class="form-control" placeholder="1111-2222-3333-4444"
+                                value="4111 2222 3333 4444">
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small text-muted">Expiration Date</label>
+                                <input type="text" class="form-control" placeholder="MM/YY" value="12/28">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small text-muted">CVV</label>
+                                <input type="password" class="form-control" placeholder="123" value="999">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">Cardholder Name</label>
+                            <input type="text" class="form-control" value="John Doe">
+                        </div>
+                    </div>
+
+                    <!-- NetBanking Tab panel -->
+                    <div class="tab-pane fade" id="net" role="tabpanel" aria-labelledby="net-tab">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">Select Your Bank</label>
+                            <select class="form-select bg-dark text-white border-secondary">
+                                <option selected>State Bank of India</option>
+                                <option>HDFC Bank</option>
+                                <option>ICICI Bank</option>
+                                <option>Axis Bank</option>
+                                <option>Kotak Mahindra Bank</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submission actions form -->
+                <form method="POST" action="{{ url_for('booking.process_payment', booking_id=booking.id) }}"
+                    class="mt-4">
+                    <input type="hidden" name="payment_method" value="UPI">
+
+                    <div class="d-flex flex-column gap-2 mt-4">
+                        <button type="submit" name="action" value="success"
+                            class="btn btn-primary btn-lg w-100 py-3 fs-6 rounded-3">
+                            SIMULATE SUCCESSFUL PAYMENT
+                        </button>
+                        <button type="submit" name="action" value="cancel"
+                            class="btn btn-outline-danger w-100 py-2 rounded-3 small">
+                            Decline & Release Seats
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right: Billing Breakdown Sidebar -->
+        <div class="col-md-5">
+            <div class="pricing-sidebar p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <h5 class="fw-bold mb-4 text-white border-bottom border-secondary pb-2">Checkout Details</h5>
+
+                    <div class="mb-3 small">
+                        <span class="text-muted d-block">Movie</span>
+                        <span class="text-white fw-bold">{{ booking.show.movie.title }}</span>
+                    </div>
+                    <div class="mb-3 small">
+                        <span class="text-muted d-block">Theatre</span>
+                        <span class="text-white fw-bold">{{ booking.show.theatre.name }}</span>
+                    </div>
+                    <div class="mb-3 small">
+                        <span class="text-muted d-block">Showtime</span>
+                        <span class="text-white fw-bold">
+                            {{ booking.show.show_date.strftime('%b %d, %Y') }} at {{
+                            booking.show.show_time.strftime('%I:%M %p') }}
+                        </span>
+                    </div>
+                    <div class="mb-3 small">
+                        <span class="text-muted d-block">Booked Seats</span>
+                        <span class="text-white fw-bold">
+                            {% for seat in booking.seats %}
+                            {{ seat.seat_number }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </span>
+                    </div>
+
+                    <hr class="border-secondary border-opacity-50">
+
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span class="text-muted">Seat Charges:</span>
+                        <span class="text-white">₹{{ price.subtotal }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span class="text-muted">GST (18%):</span>
+                        <span class="text-white">₹{{ price.gst }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 small">
+                        <span class="text-muted">Convenience Fee:</span>
+                        <span class="text-white">₹{{ price.convenience_fee }}</span>
+                    </div>
+
+                    <hr class="border-secondary">
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold fs-6 text-white">Grand Total:</span>
+                        <span class="fw-extrabold fs-4 text-danger" style="font-weight:800;">₹{{ price.grand_total
+                            }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
